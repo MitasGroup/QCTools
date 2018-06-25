@@ -1,4 +1,18 @@
 
+def dec2bin(val,fracbits=32):
+
+    whole = int(val)
+    frac = val-whole
+
+    ret = format(whole,"b")+"."
+
+    for i in range(32):
+        whole = int(frac*2)
+        ret+=str(whole)
+        frac=frac*2-whole
+
+    return ret
+
 def lowest_pending_jobs():
     from qiskit import available_backends, get_backend
     list_of_backends = available_backends(
