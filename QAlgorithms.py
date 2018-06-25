@@ -41,18 +41,18 @@ def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
 def iterative_phase_estimation(qs,qr,cr,Q,controlled_unitary,accuracy,*args):
     phase_bits=[]
     phase_factor=0
-
-    #apply hadamard to each readout qubit
-    Q.h(qr)
+    rlen=len(qr) 
 
     n=accuracy-1
     while n >= 0:
+        #apply hadamard to each readout qubit
+        Q.h(qr)
 
-        # Global phase
+        #apply global phase
         Q.u1(-2*pi*phase_factor,qr[0])
 
         #apply controlled unitary gates
-        for r in range(len(qr)):
+        for r in range(rlen):
             for i in range(2**n):
                 print(i,r)
                 controlled_unitary(qs,qr[r],Q,*args)
@@ -60,15 +60,16 @@ def iterative_phase_estimation(qs,qr,cr,Q,controlled_unitary,accuracy,*args):
         qift(qr,Q)
 
         #measure the readout qubits
-        for r in range(len(qr)):
+        for r in range(rlen):
             Q.measure(qr[r],cr[r])
    
         # Need to add the bit values with maximum count to phase_bits
 
-        # Generate global phase factor 
-        for i in range(n,n-len(qr),-1):
+        #add to global phase factor 
+        for i in range(n,n-rlen,-1):
             phase_factor+=phase_bits[i]/(2**(2+i))
 
-        n-=len(qr)
+        n-=rlen
 
+        Q.initialize(params,qr,qc) # Will break. I am not yet sure what params is refering to here. Read QISkit SDK reference
     # Potentially we output or return the result here
