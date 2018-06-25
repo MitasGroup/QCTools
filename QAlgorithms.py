@@ -67,7 +67,7 @@ def iterative_phase_estimation(qs,qr,cr,Q,controlled_unitary,accuracy,*args):
 
         # Generate global phase factor 
         for i in range(n,n-len(qr),-1):
-            phase_factor+=previous_bits[i]/(2**(2+i))
+            phase_factor+=phase_bits[i]/(2**(2+i))
 
         n-=len(qr)
 
