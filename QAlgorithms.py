@@ -1,4 +1,6 @@
 #! /usr/bin/env python3
+import math
+import numpy as np
 
 #quantum fourier transform
 def qft(q,Q):
@@ -26,7 +28,6 @@ def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
     #apply controlled unitary gates
     for r in range(len(qr)):
         for i in range(2**r):
-            print(i,r)
             controlled_unitary(qs,qr[r],Q,*args)
     #apply inverse QFT to readout qubits
     qift(qr,Q)
