@@ -46,23 +46,22 @@ def iterative_phase_estimation(qs,qr,cr,Q,controlled_unitary,accuracy,*args):
 
     n=accuracy-1
     while n >= 0:
-        #apply hadamard to each readout qubit
-        Q.h(qr)
-
         #apply global phase
         Q.u1(-2*pi*phase_factor,qr[0])
 
+        #apply hadamard to each readout qubit
+        Q.h(qr)
+
         #apply controlled unitary gates
         for r in range(rlen):
-            for i in range(2**n):
+            for i in range(2**(n-r)):
                 print(i,r)
                 controlled_unitary(qs,qr[r],Q,*args)
         #apply inverse QFT to readout qubits
         qift(qr,Q)
 
         #measure the readout qubits
-        for r in range(rlen):
-            Q.measure(qr[r],cr[r])
+        Q.measure(qr,cr)
    
         # Need to add the bit values with maximum count to phase_bits
 
