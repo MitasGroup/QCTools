@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-def global_H(qc,q):
-
-    for i in range(len(q)):
-        qc.h(q[i])
-
 def adiabatic_evolve(qc,q0,q1,delta,tau,steps):
 
     for m in range(1,steps+1):
@@ -141,13 +136,13 @@ if __name__ == "__main__":
         measure(qc,q,c,['x','z'])
 
         # Set backend
-        #backend = lowest_pending_jobs()
-        #print("the best backend is " + backend)
+        # backend = lowest_pending_jobs()
+        # print("the best backend is " + backend)
         backend = 'ibmqx4'
 
         #circuit_drawer(qc).save("qc.pdf")
 
-        # Compile and run the Quantum circuit on a simulator backend
+        # Compile and run the Quantum circuit on backend
         job_sim = execute(qc, backend, shots=nshots, max_credits=10)
         watch_job(job_sim)
         sim_result = job_sim.result()
@@ -165,11 +160,10 @@ if __name__ == "__main__":
         measure(qc,q,c,['z','x'])
 
         # Set backend
-        backend = lowest_pending_jobs()
-        print("the best backend is " + backend)
-        backend = 'ibmqx4'
+        # backend = lowest_pending_jobs()
+        # print("the best backend is " + backend)
 
-        # Compile and run the Quantum circuit on a simulator backend
+        # Compile and run the Quantum circuit on backend
         job_sim = execute(qc, backend, shots=nshots, max_credits=10)
         watch_job(job_sim)
         print(job_sim.status)
@@ -187,11 +181,12 @@ if __name__ == "__main__":
 
         # Measure along Z1 and Z2 axis
         measure(qc,q,c,['z','z'])
-        backend = lowest_pending_jobs()
-        print("the best backend is " + backend)
-        backend = 'ibmqx4'
 
-        # Compile and run the Quantum circuit on a simulator backend
+        # Set backend
+        # backend = lowest_pending_jobs()
+        # print("the best backend is " + backend)
+
+        # Compile and run the Quantum circuit on backend
         job_sim = execute(qc, backend, shots=nshots, max_credits=10)
         watch_job(job_sim)
         sim_result = job_sim.result()
