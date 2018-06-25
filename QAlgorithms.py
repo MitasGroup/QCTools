@@ -39,7 +39,6 @@ def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
 
 #iterative phase estimation algorithm with controlled unitary function
 def iterative_phase_estimation(qs,qr,cr,Q,controlled_unitary,accuracy,*args):
-    #previous_bits=[1,0,0,0,0,0,0,1]
     phase_bits=[]
     phase_factor=0
 
