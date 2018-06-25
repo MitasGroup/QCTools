@@ -20,6 +20,28 @@ def qift(q,Q):
             Q.cu1(-2.0*np.pi/2**(j+1),q[j],q[i])
         Q.h(q[i])
 
+def swap_all(qc,r):
+
+    from math import floor 
+
+    for i in range(math.floor(len(r)/2)):
+        qc.swap(r[i],r[len(r)-1-i])
+
+def iqft(qc,r):
+
+
+    from math import pi
+    nqubits=len(r)
+
+    swap_all(qc,r)
+    for i in range(nqubits):
+        counter=0
+        for j in range(0,i):
+            #Add controlled Rk gates here as described by Nielsen
+            qc.cu1(-2.0*pi/2.0**(i+1-j),r[j],r[i])
+        qc.h(r[i])
+
+
 #phase estimation algorithm with controlled unitary function
 def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
     #apply hadamard to each readout qubit
@@ -30,7 +52,7 @@ def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
         for i in range(2**r):
             controlled_unitary(qs,qr[r],Q,*args)
     #apply inverse QFT to readout qubits
-    qift(qr,Q)
+    iqft(Q,qr)
 
     #measure the readout qubits
     for r in range(len(qr)):
