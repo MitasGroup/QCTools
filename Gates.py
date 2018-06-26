@@ -6,12 +6,10 @@ def dec2bin(val,fracbits=32):
     whole = int(val)
     frac = val-whole
     ret = format(whole,"b")+"."
-
     for i in range(32):
         whole = int(frac*2)
         ret+=str(whole)
         frac=frac*2-whole
-
     return ret
 
 #swap all qubits in register
@@ -39,7 +37,6 @@ def qift(q,Q):
 
 def iqft(qc,r):
     nqubits=len(r)
-
     swap_all(qc,r)
     for i in range(nqubits):
         counter=0
@@ -47,5 +44,4 @@ def iqft(qc,r):
             #Add controlled Rk gates here as described by Nielsen
             qc.cu1(-2.0*math.pi/2.0**(i+1-j),r[j],r[i])
         qc.h(r[i])
-
 
