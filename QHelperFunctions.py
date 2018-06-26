@@ -11,6 +11,7 @@ def lowest_pending_jobs():
     return best['name']
 
 def watch_job(job,interval=10):
+    import time
     lapse = 0
     while not job.done:
         print('Status @ {} seconds'.format(interval * lapse))
