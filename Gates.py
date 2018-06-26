@@ -16,7 +16,7 @@ def qft(qc,r):
     for i in reversed(range(nqubits)):
         qc.h(r[i])
         for j in reversed(range(i)):
-            qc.cu1(2.0*math.pi/2.0**(i+1-j)),r[j],r[i])
+            qc.cu1(2.0*math.pi/2.0**(i+1-j),r[j],r[i])
     swap_all(qc,r)
 
 
