@@ -12,7 +12,7 @@ def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
         for i in range(2**r):
             controlled_unitary(qs,qr[r],Q,*args)
     #apply inverse QFT to readout qubits
-    Gates.qft(Q,qr)
+    Gates.iqft(Q,qr)
 
     #measure the readout qubits
     for r in range(len(qr)):
