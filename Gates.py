@@ -17,6 +17,10 @@ def swap_all(qc,r):
     for i in range(math.floor(len(r)/2)):
         qc.swap(r[i],r[len(r)-1-i])
 
+#apply controlled global phase
+def c_global_phase(cntrl,Q,phase):
+    Q.u1(phase,cntrl)
+
 #quantum fourier transform
 def qft(q,Q):
     for i in range(len(q)):

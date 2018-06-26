@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 import math
+from QCTools import Gates
 
 #phase estimation algorithm with controlled unitary function
 def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
@@ -9,9 +10,9 @@ def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
     #apply controlled unitary gates
     for r in range(len(qr)):
         for i in range(2**r):
-            controlled_unitary(qs,qr[r],Q,*args)
+            controlled_unitary(qr[r],Q,*args)
     #apply inverse QFT to readout qubits
-    iqft(Q,qr)
+    Gates.iqft(Q,qr)
 
     #measure the readout qubits
     for r in range(len(qr)):
