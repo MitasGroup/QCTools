@@ -1,2 +1,2 @@
 # QCTools
-General pupose electornic structure quantum computing package.
+General purpose electronic structure quantum computing package.
