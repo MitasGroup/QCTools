@@ -2,6 +2,24 @@
 import math
 import numpy as np
 
+#decimal to binary converter
+def dec2bin(val,fracbits=32):
+    whole = int(val)
+    frac = val-whole
+    ret = format(whole,"b")+"."
+
+    for i in range(32):
+        whole = int(frac*2)
+        ret+=str(whole)
+        frac=frac*2-whole
+
+    return ret
+
+#swap all qubits in register
+def swap_all(qc,r):
+    for i in range(math.floor(len(r)/2)):
+        qc.swap(r[i],r[len(r)-1-i])
+
 #quantum fourier transform
 def qft(q,Q):
     for i in range(len(q)):
@@ -20,17 +38,7 @@ def qift(q,Q):
             Q.cu1(-2.0*np.pi/2**(j+1),q[j],q[i])
         Q.h(q[i])
 
-def swap_all(qc,r):
-
-    from math import floor 
-
-    for i in range(math.floor(len(r)/2)):
-        qc.swap(r[i],r[len(r)-1-i])
-
 def iqft(qc,r):
-
-
-    from math import pi
     nqubits=len(r)
 
     swap_all(qc,r)
@@ -38,7 +46,7 @@ def iqft(qc,r):
         counter=0
         for j in range(0,i):
             #Add controlled Rk gates here as described by Nielsen
-            qc.cu1(-2.0*pi/2.0**(i+1-j),r[j],r[i])
+            qc.cu1(-2.0*math.pi/2.0**(i+1-j),r[j],r[i])
         qc.h(r[i])
 
 
