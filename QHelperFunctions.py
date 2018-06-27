@@ -46,3 +46,14 @@ def configure(Qconfig_path,Qconfig_name):
 
     register(qx_config['APItoken'],qx_config['url'],qx_config['hub'],qx_config['group'],qx_config['project'])
 
+#decimal to binary converter
+def dec2bin(val,fracbits=32):
+    whole = int(val)
+    frac = val-whole
+    ret = format(whole,"b")+"."
+    for i in range(32):
+        whole = int(frac*2)
+        ret+=str(whole)
+        frac=frac*2-whole
+    return ret
+
