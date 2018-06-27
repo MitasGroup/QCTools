@@ -34,6 +34,8 @@ def iterative_phase_estimation(qs,qr,cr,Q,backend,shots,rsize,controlled_unitary
 
     n=accuracy
     while n > 0:
+        print('Current phase estimate is  0.'+'x'*(n)+str(bit_str))
+        
         # Create a Quantum Register with 2 qubits.
         qr = QuantumRegister(rlen)
         qs = QuantumRegister(slen)
@@ -89,6 +91,7 @@ def iterative_phase_estimation(qs,qr,cr,Q,backend,shots,rsize,controlled_unitary
             i=i+1
 
         n=n-rlen
-        print('Current phase estimate is  0.'+'x'*(n)+str(bit_str))
+
+    print('Final phase estimate is  0.'+str(bit_str))
 
     # Potentially we output or return the result here
