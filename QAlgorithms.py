@@ -66,18 +66,16 @@ def iterative_phase_estimation(qs,qr,cr,Q,backend,shots,rsize,controlled_unitary
         #measure the readout qubits
         Q.measure(qr,cr)
   
-        compile(Q,backend,shots=shots)
-
         #execute job
         job = execute(Q, backend, shots=shots)
         QHelperFunctions.watch_job(job,30)
         result = job.result()
 
-        # Show the results
+        #show the results
         print("simulation: ", result)
         distribution = {k: v / shots for k, v in result.get_counts().items()}
 
-        # Need to add the bit string of maximum count to phase_bits
+        #concatenating bit string of maximum count to bit_str
         bit_substr=re.compile('[0-1]+').findall(max(distribution.items(), key=operator.itemgetter(1))[0])[1]
         bit_str=bit_substr+bit_str
   
