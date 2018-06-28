@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 import math
-from QCTools import Gates
+from QCTools import Gates, QHelperFunctions
+import operator
 
 #phase estimation algorithm with controlled unitary function
 def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
@@ -21,37 +22,76 @@ def phase_estimation(qs,qr,cr,Q,controlled_unitary,*args):
     # Potentially we output or return the result here
 
 #iterative phase estimation algorithm with controlled unitary function
-def iterative_phase_estimation(qs,qr,cr,Q,controlled_unitary,accuracy,*args):
-    phase_bits=[]
+def iterative_phase_estimation(qs,qr,cr,Q,backend,shots,rsize,controlled_unitary,accuracy,*args):
+    from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister
+    from qiskit import execute, compile
+    import re
+
+    bit_str=''
     phase_factor=0
     rlen=len(qr) 
+    slen=len(qs) 
 
     n=accuracy
     while n > 0:
-        #apply global phase
-        Q.u1(-2*math.pi*phase_factor,qr[0])
+        print('Current phase estimate is  0.'+'x'*(n)+str(bit_str))
+        
+        # Create a Quantum Register with 2 qubits.
+        qr = QuantumRegister(rlen)
+        qs = QuantumRegister(slen)
+
+        # Create a Classical Register with 2 bits.
+        cr = ClassicalRegister(rlen)
+        cs = ClassicalRegister(slen)
+
+        # Create a Quantum Circuit
+        Q = QuantumCircuit(qr, qs, cr, cs)
+
+        # Prepare HF ground state. 0th and 1st orbs occupied. 
+        # This is H2 specific and needs to be generalized
+        Q.x(qs[0]) 
+        Q.x(qs[1]) 
 
         #apply hadamard to each readout qubit
         Q.h(qr)
 
         #apply controlled unitary gates
         for r in range(rlen):
+            #apply global phase
+            Q.u1(-2.0**(r+1)*math.pi*phase_factor,qr[r])
+            #apply controlled powers of U
             for i in range(2**(n-1-r)):
-                print(i,r)
-                controlled_unitary(qs,qr[r],Q,*args)
+                controlled_unitary(qs,qr[rlen-1-r],Q,*args)
         #apply inverse QFT to readout qubits
-        qift(qr,Q)
+        Gates.iqft(Q,qr)
 
         #measure the readout qubits
         Q.measure(qr,cr)
-   
-        # Need to add the bit values with maximum count to phase_bits
+  
+        #execute job
+        job = execute(Q, backend, shots=shots)
+        QHelperFunctions.watch_job(job,30)
+        result = job.result()
+
+        #show the results
+        print("simulation: ", result)
+        distribution = {k: v / shots for k, v in result.get_counts().items()}
+
+        #concatenating bit string of maximum count to bit_str
+        bit_substr=re.compile('[0-1]+').findall(max(distribution.items(), key=operator.itemgetter(1))[0])[1]
+        bit_str=bit_substr+bit_str
+  
+        print(max(distribution.items(), key=operator.itemgetter(1)))
 
         #add to global phase factor 
-        for i in range(n-1,n-1-rlen,-1):
-            phase_factor+=phase_bits[i]/(2**(2+i))
+        i=0
+        phase_factor=0
+        for c in bit_str:
+            phase_factor+=float(c)/(2**(rlen+1+i))
+            i=i+1
 
-        n-=rlen
+        n=n-rlen
 
-        Q.initialize(params,qr,qc) # Will break. I am not yet sure what params is refering to here. Read QISkit SDK reference
+    print('Final phase estimate is  0.'+str(bit_str))
+
     # Potentially we output or return the result here
