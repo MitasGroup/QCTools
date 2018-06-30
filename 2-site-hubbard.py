@@ -4,40 +4,12 @@ from qiskit import QuantumProgram, QISKitError,QuantumJob,QuantumRegister,Classi
 from qiskit import available_backends, execute, register, get_backend
 from qiskit.tools.visualization import circuit_drawer
 import numpy as np
-import sys,time,getpass
 
-shots = 4096
+from QCTools import QHelperFunctions as hlp
 
-try:
-    sys.path.append('/home/camelto2/Research/quantum_computing/')
-    import Qconfig_ibmq_experience as Qconfig
-    qx_config = {
-            "APItoken": Qconfig.APItoken,
-            "url"     : Qconfig.config['url'],
-            "hub"     : Qconfig.config['hub'],
-            "group"   : Qconfig.config['group'],
-            "project" : Qconfig.config['project']
-            }
-    print('Qconfig loaded from %s.' % Qconfig.__file__ )
-    register(qx_config['APItoken'],qx_config['url'],qx_config['hub'],qx_config['group'],qx_config['project'])
-except:
-    APItoken = getpass.getpass('Please input your token and hit enter: ')
-    qx_config = {
-            "APItoken": APItoken,
-            "url": "https://quantumexperience.ng.bluemix.net/api"
-            }
-    print("Qconfig not found. Loaded from user input")
+shots = 8192
 
-def lowest_pending_jobs():
-    """Returns the backend with lowest pending jobs."""
-    list_of_backends = available_backends(
-        {'local': False, 'simulator': False})
-    device_status = [get_backend(backend).status
-                     for backend in list_of_backends]
-
-    best = min([x for x in device_status if x['available'] is True],
-                key=lambda x: x['pending_jobs'])
-    return best['name']
+hlp.configure('/home/camelto2/Research/quantum_computing','Qconfig_ibmq_experience')
 
 def exact(U):
     return 0.5*(U-np.sqrt(16+U**2))-U/2
@@ -56,11 +28,23 @@ def adiabatic_evolution(q,Q,delta,tau,Nsteps):
     for m in range(1,Nsteps+1):
         #apply exp(i delta (X1+X2) ) 
         for i in range(len(q)):
-            Q.rx(-2*delta,q[i])
+            Q.rx(-2.0*delta,q[i])
     
         #apply exp(-i m delta^2/ (2tau) Z1 Z2) 
         Q.cx(q[0],q[1])
         Q.rz(m*delta**2/tau,q[1])
+        Q.cx(q[0],q[1])
+
+def M2_adiabatic_evolution(q,Q,delta,Nsteps):
+    #Adiabatic evolution
+    for m in range(1,Nsteps+1):
+        #apply exp(i delta (X1+X2) ) 
+        for i in range(len(q)):
+            Q.rx(-2.0*delta,q[i])
+    
+        #apply exp(-i m delta^2/ (2tau) Z1 Z2) 
+        # tau = INF so no Rz rotation
+        Q.cx(q[0],q[1])
         Q.cx(q[0],q[1])
 
 def measure(q,c,Q,measurement):
@@ -70,20 +54,14 @@ def measure(q,c,Q,measurement):
         Q.h(q[1])
     Q.measure(q,c)
 
-    #backend = lowest_pending_jobs()
+    #backend = hlp.lowest_pending_jobs()
     #print("the best backend is " + backend)
-
-    #backend = 'local_qasm_simulator'
     backend = 'ibmqx4'
+
+
     job = execute(Q,backend=backend,shots=shots)
 
-    lapse = 0
-    interval = 10
-    while not job.done:
-        print('Status @ {} seconds'.format(interval*lapse))
-        print(job.status)
-        time.sleep(interval)
-        lapse += 1
+    hlp.watch_job(job)
     print(job.status)
 
     result = job.result()
@@ -106,26 +84,33 @@ def analyze(H1,H2,H3,U):
     X1 = scaledH1['00']+scaledH1['10'] - (scaledH1['01']+scaledH1['11'])
     X2 = scaledH2['00']+scaledH2['01'] - (scaledH2['10']+scaledH2['11'])
     Z1Z2 = scaledH3['00'] + scaledH3['11'] - scaledH3['01'] - scaledH3['10']
+    en = -(X1+X2)+0.5*U*Z1Z2
 
-    return -(X1+X2)+0.5*U*Z1Z2
+    print('X1',X1,scaledH1)
+    print('X2',X2,scaledH2)
+    print('Z1Z2',Z1Z2,scaledH3)
+    print('En',en)
+
+    return en
 
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import pickle
     data = {'M1': [], 'M2': []}
-    #Us = [0,1,2,3,4,5,6]
-    Us = [0,2,4,6]
+    Us = [0,1,2,3,4,5,6]
     data['U'] = Us
     for U in Us:
         q,c,Q = setup() #for measuring <X1>
         ground_state(q,Q)
         adiabatic_evolution(q,Q,0.1,0.1,U)
         res1 = measure(q,c,Q,'X1')
+
         q,c,Q = setup() #for measuring <X1>
         ground_state(q,Q)
         adiabatic_evolution(q,Q,0.1,0.1,U)
         res2 = measure(q,c,Q,'X2')
+
         q,c,Q = setup() #for measuring <X1>
         ground_state(q,Q)
         adiabatic_evolution(q,Q,0.1,0.1,U)
@@ -138,24 +123,33 @@ if __name__ == '__main__':
         ground_state(q,Q)
         if U != 0:
             adiabatic_evolution(q,Q,0.25,1.25/U,5)
+        else:
+            M2_adiabatic_evolution(q,Q,0.25,5)
         res1 = measure(q,c,Q,'X1')
+
         q,c,Q = setup() #for measuring <X1>
         ground_state(q,Q)
         if U != 0:
             adiabatic_evolution(q,Q,0.25,1.25/U,5)
+        else:
+            M2_adiabatic_evolution(q,Q,0.25,5)
+
         res2 = measure(q,c,Q,'X2')
         q,c,Q = setup() #for measuring <X1>
         ground_state(q,Q)
         if U != 0:
             adiabatic_evolution(q,Q,0.25,1.25/U,5)
+        else:
+            M2_adiabatic_evolution(q,Q,0.25,5)
         res3 = measure(q,c,Q,'Z1Z2')
         E = analyze(res1,res2,res3,U)
+
         data['M2'].append(E)
 
-    plt.scatter(data['U'],data['M1'],label='M1')
-    plt.scatter(data['U'],data['M2'],label='M2')
-    plt.plot(np.linspace(0,6,100),exact(np.linspace(0,6,100)),label='exact')
-    plt.legend()
-    plt.show()
-    with open('data.p','wb') as f:
+    #plt.scatter(data['U'],data['M1'],label='M1')
+    #plt.scatter(data['U'],data['M2'],label='M2')
+    #plt.plot(np.linspace(0,6,100),exact(np.linspace(0,6,100)),label='exact')
+    #plt.legend()
+    #plt.show()
+    with open('ibmqx4.p','wb') as f:
         pickle.dump(data,f)
